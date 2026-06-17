@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Mesa — Smart Restaurant System</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🍽️</div>
+      <h2>La Mesa</h2>
+      <span>Smart Restaurant System</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a class="nav-item active" data-page="dashboard" onclick="setPage('dashboard')">
+        <span class="nav-icon">📊</span><span>Dashboard</span>
+      </a>
+      <a class="nav-item" data-page="order" onclick="setPage('order')">
+        <span class="nav-icon">➕</span><span>New Order</span>
+      </a>
+
+      <div class="nav-section-label">Operations</div>
+      <a class="nav-item" data-page="orders" onclick="setPage('orders')">
+        <span class="nav-icon">📋</span><span>Orders</span>
+      </a>
+      <a class="nav-item" data-page="kitchen" onclick="setPage('kitchen')">
+        <span class="nav-icon">👨‍🍳</span><span>Kitchen Display</span>
+      </a>
+      <a class="nav-item" data-page="tables" onclick="setPage('tables')">
+        <span class="nav-icon">🪑</span><span>Tables</span>
+      </a>
+
+      <div class="nav-section-label">Management</div>
+      <a class="nav-item" data-page="menu" onclick="setPage('menu')">
+        <span class="nav-icon">🍴</span><span>Menu Items</span>
+      </a>
+      <a class="nav-item" data-page="customers" onclick="setPage('customers')">
+        <span class="nav-icon">👥</span><span>Customers</span>
+      </a>
+      <a class="nav-item" data-page="feedback" onclick="setPage('feedback')">
+        <span class="nav-icon">⭐</span><span>Feedback</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1 id="topbarTitle">Dashboard</h1>
+        <p id="topbarSub">Overview of today's operations</p>
+      </div>
+      <div class="topbar-actions">
+        <div style="font-size:12px;color:var(--text-muted);text-align:right">
+          <div id="clockDisplay" style="font-family:var(--font-display);font-size:16px;color:var(--gold)"></div>
+          <div id="dateDisplay"></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-content">
+
+      <!-- ============================= DASHBOARD ============================= -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Today's Revenue</div>
+            <div class="stat-value" id="statSales">₱0</div>
+            <div class="stat-sub">All completed orders</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🧾</div>
+            <div class="stat-label">Today's Orders</div>
+            <div class="stat-value" id="statOrders">0</div>
+            <div class="stat-sub">Total orders placed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-label">Active Orders</div>
+            <div class="stat-value" id="statActive">0</div>
+            <div class="stat-sub">In queue / preparing</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🪑</div>
+            <div class="stat-label">Available Tables</div>
+            <div class="stat-value" id="statTables">0</div>
+            <div class="stat-sub">Ready for guests</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-label">Avg Rating</div>
+            <div class="stat-value" id="statRating">N/A</div>
+            <div class="stat-sub">Customer satisfaction</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="gap:20px">
+          <div class="card">
+            <div class="section-header">
+              <div><h2>Recent Orders</h2><p>Latest 8 orders</p></div>
+              <button class="btn btn-secondary btn-sm" onclick="setPage('orders')">View All →</button>
+            </div>
+            <table class="data-table">
+              <thead><tr><th>Order #</th><th>Table</th><th>Customer</th><th>Status</th><th>Total</th><th>Time</th></tr></thead>
+              <tbody id="recentOrdersBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="section-header">
+              <div><h2>Top Selling Items</h2><p>All-time bestsellers</p></div>
+            </div>
+            <div id="topItemsChart" class="chart-bar-wrap">
+              <div class="loading">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================= NEW ORDER ============================= -->
+      <div class="page" id="page-order">
+        <div class="order-layout">
+          <!-- Menu Panel -->
+          <div class="menu-panel">
+            <div class="section-header mb-16">
+              <div>
+                <div class="category-tabs" id="categoryTabs"></div>
+              </div>
+              <div class="search-bar">
+                <span>🔍</span>
+                <input type="text" placeholder="Search menu..." oninput="renderMenuGrid(state.menu.filter(i=>i.name.toLowerCase().includes(this.value.toLowerCase())))">
+              </div>
+            </div>
+            <div class="menu-grid" id="menuGrid">
+              <div class="loading">Loading menu...</div>
+            </div>
+          </div>
+
+          <!-- Cart Panel -->
+          <div class="cart-panel">
+            <div class="cart-header flex-between">
+              <span>🛒 Order Cart</span>
+              <span id="cartCount" style="background:var(--gold-dim);color:var(--gold);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">0</span>
+            </div>
+
+            <!-- Order Info -->
+            <div style="padding:12px;border-bottom:1px solid var(--border)">
+              <div class="grid-2" style="gap:8px;margin-bottom:8px">
+                <select class="form-control" id="orderType" style="font-size:12px;padding:8px">
+                  <option value="dine-in">🍴 Dine In</option>
+                  <option value="takeout">📦 Takeout</option>
+                  <option value="delivery">🛵 Delivery</option>
+                </select>
+                <input class="form-control" id="walkInName" placeholder="Guest name" style="font-size:12px;padding:8px">
+              </div>
+              <div style="display:flex;gap:8px;margin-bottom:8px">
+                <button class="btn btn-secondary btn-sm" style="flex:1;font-size:12px" onclick="openModal('tableModal')">🪑 <span id="selectedTableDisplay">Select Table</span></button>
+                <button class="btn btn-secondary btn-sm" style="flex:1;font-size:12px" onclick="openModal('customerModal')">👤 <span id="selectedCustomerDisplay">Customer</span></button>
+              </div>
+              <textarea class="form-control" id="orderNotes" placeholder="Special notes..." style="font-size:12px;min-height:50px"></textarea>
+            </div>
+
+            <div class="cart-items" id="cartItems">
+              <div class="empty-state" style="padding:30px"><div class="empty-icon">🛒</div><p>Cart is empty</p></div>
+            </div>
+
+            <div class="cart-footer">
+              <div style="margin-bottom:10px">
+                <div class="flex-between mb-8">
+                  <label style="font-size:12px;color:var(--text-muted)">Discount (₱)</label>
+                  <input type="number" class="form-control" id="discountAmt" value="0" min="0" style="width:100px;font-size:12px;padding:5px 10px;text-align:right">
+                </div>
+                <label style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;cursor:pointer">
+                  <input type="checkbox" id="applyServiceCharge"> Apply 10% Service Charge
+                </label>
+              </div>
+              <div class="cart-summary-row"><span>Subtotal</span><span id="cartSubtotal">₱0.00</span></div>
+              <div class="cart-summary-row"><span>Tax (12% VAT)</span><span id="cartTax">₱0.00</span></div>
+              <div class="cart-summary-row"><span>Service Charge</span><span id="cartSC">₱0.00</span></div>
+              <div class="cart-summary-row total"><span>Total</span><span id="cartTotal">₱0.00</span></div>
+              <div style="display:flex;gap:8px;margin-top:12px">
+                <button class="btn btn-secondary" style="flex:0" onclick="clearCart()">🗑</button>
+                <button class="btn btn-primary" style="flex:1" id="placeOrderBtn" onclick="placeOrder()">✓ Place Order</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================= ORDERS ============================= -->
+      <div class="page" id="page-orders">
+        <div class="section-header">
+          <div>
+            <h2>Order Management</h2>
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+              <button class="cat-tab active" onclick="filterOrders('all', this)">All</button>
+              <button class="cat-tab" onclick="filterOrders('confirmed', this)">Confirmed</button>
+              <button class="cat-tab" onclick="filterOrders('preparing', this)">Preparing</button>
+              <button class="cat-tab" onclick="filterOrders('ready', this)">Ready</button>
+              <button class="cat-tab" onclick="filterOrders('served', this)">Served</button>
+              <button class="cat-tab" onclick="filterOrders('cancelled', this)">Cancelled</button>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="setPage('order')">➕ New Order</button>
+        </div>
+        <div class="card">
+          <table class="data-table">
+            <thead><tr><th>Order #</th><th>Table</th><th>Customer</th><th>Status</th><th>Type</th><th>Total</th><th>Time</th><th>Actions</th></tr></thead>
+            <tbody id="ordersBody"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============================= KITCHEN ============================= -->
+      <div class="page" id="page-kitchen">
+        <div class="section-header">
+          <div><h2>Kitchen Display System</h2><p>Auto-refreshes every 15 seconds</p></div>
+          <button class="btn btn-secondary" onclick="loadKitchen()">🔄 Refresh Now</button>
+        </div>
+        <div class="kitchen-grid" id="kitchenGrid">
+          <div class="loading">Loading orders...</div>
+        </div>
+      </div>
+
+      <!-- ============================= TABLES ============================= -->
+      <div class="page" id="page-tables">
+        <div class="section-header">
+          <div><h2>Floor Layout</h2></div>
+          <button class="btn btn-secondary" onclick="loadTablesPage()">🔄 Refresh</button>
+        </div>
+        <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+          <span class="badge badge-available" style="font-size:13px;padding:6px 14px">🟢 Available</span>
+          <span class="badge badge-occupied" style="font-size:13px;padding:6px 14px">🔴 Occupied</span>
+          <span class="badge badge-reserved" style="font-size:13px;padding:6px 14px">🟡 Reserved</span>
+          <span class="badge badge-cleaning" style="font-size:13px;padding:6px 14px">🔵 Cleaning</span>
+        </div>
+        <div class="tables-grid" id="tablesPageGrid">
+          <div class="loading">Loading tables...</div>
+        </div>
+      </div>
+
+      <!-- ============================= MENU MANAGEMENT ============================= -->
+      <div class="page" id="page-menu">
+        <div class="section-header">
+          <div><h2>Menu Management</h2></div>
+          <button class="btn btn-primary" onclick="openAddMenuItem()">➕ Add Item</button>
+        </div>
+        <div class="card">
+          <div class="flex gap-12 mb-16" style="flex-wrap:wrap">
+            <div class="search-bar" style="width:240px">
+              <span>🔍</span><input type="text" id="menuSearch" placeholder="Search items...">
+            </div>
+            <select class="form-control" id="menuCategoryFilter" style="width:200px">
+              <option value="all">All Categories</option>
+            </select>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Prep Time</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="menuAdminBody"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============================= CUSTOMERS ============================= -->
+      <div class="page" id="page-customers">
+        <div class="section-header">
+          <div><h2>Customer Directory</h2></div>
+          <button class="btn btn-primary" onclick="openAddCustomer()">➕ Add Customer</button>
+        </div>
+        <div class="card">
+          <div class="search-bar mb-16" style="width:300px">
+            <span>🔍</span><input type="text" id="customerSearchAdmin" placeholder="Search name, email, phone..." oninput="searchCustomerList()">
+          </div>
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Loyalty Points</th><th>Visits</th><th>Total Spent</th><th>Preferences</th><th>Since</th><th>Actions</th></tr></thead>
+            <tbody id="customersBody"><tr><td colspan="9" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============================= FEEDBACK ============================= -->
+      <div class="page" id="page-feedback">
+        <div class="grid-2" style="gap:20px;align-items:start">
+          <!-- Submit Feedback -->
+          <div class="card">
+            <div class="section-header"><div><h2>Submit Feedback</h2><p>Record customer review</p></div></div>
+            <div class="form-group">
+              <label class="form-label">Customer Name</label>
+              <input class="form-control" id="fbName" placeholder="Customer name or 'Anonymous'">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Order # (Optional)</label>
+              <input class="form-control" id="fbOrderId" placeholder="Order ID if known">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Overall Experience</label>
+              <div id="starOverallWrap"></div>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Food Quality</label>
+                <div id="starFoodWrap"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Service</label>
+                <div id="starServiceWrap"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Ambiance</label>
+                <div id="starAmbianceWrap"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Comments</label>
+              <textarea class="form-control" id="fbComment" placeholder="What did the customer think?"></textarea>
+            </div>
+            <button class="btn btn-primary" style="width:100%" onclick="submitFeedback()">Submit Feedback ⭐</button>
+          </div>
+
+          <!-- Feedback List -->
+          <div class="card">
+            <div class="section-header"><div><h2>Recent Reviews</h2></div><button class="btn btn-secondary btn-sm" onclick="loadFeedback()">🔄 Refresh</button></div>
+            <table class="data-table">
+              <thead><tr><th>Customer</th><th>Overall</th><th>Food</th><th>Service</th><th>Ambiance</th><th>Comment</th><th>Date</th></tr></thead>
+              <tbody id="feedbackBody"><tr><td colspan="7" class="text-center text-muted" style="padding:30px">No feedback yet</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ============================= MODALS ============================= -->
+
+<!-- Table Selector Modal -->
+<div class="modal-overlay" id="tableModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Select a Table</h3>
+      <button class="modal-close" onclick="closeModal('tableModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tables-grid" id="tableSelector"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Lookup Modal -->
+<div class="modal-overlay" id="customerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Find Customer</h3>
+      <button class="modal-close" onclick="closeModal('customerModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="search-bar mb-16" style="width:100%">
+        <span>🔍</span><input type="text" id="customerSearch" placeholder="Search by name, email or phone..." oninput="searchCustomers()">
+      </div>
+      <div id="customerResults"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal-overlay" id="orderDetailModal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <h3>Order Details</h3>
+      <button class="modal-close" onclick="closeModal('orderDetailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="orderDetailContent"></div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h3>Process Payment</h3>
+      <button class="modal-close" onclick="closeModal('paymentModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:24px;padding:20px;background:var(--surface2);border-radius:12px">
+        <div class="text-muted text-sm">Order</div>
+        <div class="font-display" style="font-size:18px;color:var(--gold);margin:4px 0" id="paymentOrderNum">-</div>
+        <div class="text-muted text-sm">Amount Due</div>
+        <div class="font-display" style="font-size:32px;font-weight:700;color:var(--text)" id="paymentTotal">₱0.00</div>
+        <input type="hidden" id="paymentTotalHidden">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <select class="form-control" id="paymentMethod">
+          <option value="cash">💵 Cash</option>
+          <option value="card">💳 Card</option>
+          <option value="gcash">📱 GCash</option>
+          <option value="maya">📱 Maya</option>
+          <option value="online">🌐 Online</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount Tendered</label>
+        <input class="form-control" type="number" id="amountPaid" placeholder="Enter amount" min="0" step="0.01" style="font-size:18px;text-align:center">
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px 18px;text-align:center">
+        <div class="text-muted text-sm">Change</div>
+        <div class="font-display" style="font-size:24px;color:var(--success);font-weight:700" id="changeDisplay">₱0.00</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('paymentModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="processPayment()">✓ Confirm Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Menu Item Modal -->
+<div class="modal-overlay" id="menuItemModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="menuItemModalTitle">Add Menu Item</h3>
+      <button class="modal-close" onclick="closeModal('menuItemModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="menuItemId">
+      <div class="grid-2">
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Item Name *</label>
+          <input class="form-control" id="menuItemName" placeholder="e.g. Grilled Salmon">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" id="menuItemDesc" placeholder="Brief description..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Price (₱) *</label>
+          <input class="form-control" type="number" id="menuItemPrice" min="0" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-control" id="menuItemCategory"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prep Time (min)</label>
+          <input class="form-control" type="number" id="menuItemPrep" value="15" min="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stock Quantity</label>
+          <input class="form-control" type="number" id="menuItemStock" value="100" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Availability</label>
+          <select class="form-control" id="menuItemAvail">
+            <option value="1">✅ Available</option>
+            <option value="0">❌ Unavailable</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('menuItemModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMenuItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Admin Modal -->
+<div class="modal-overlay" id="customerAdminModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="custModalTitle">Add Customer</h3>
+      <button class="modal-close" onclick="closeModal('customerAdminModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="custId">
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <input class="form-control" id="custName" placeholder="Customer full name">
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-control" id="custEmail" type="email" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input class="form-control" id="custPhone" placeholder="09XXXXXXXXX">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Preferences / Notes</label>
+        <textarea class="form-control" id="custPref" placeholder="Allergies, dietary preferences..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('customerAdminModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('en-PH', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('dateDisplay').textContent = now.toLocaleDateString('en-PH', {weekday:'long',month:'long',day:'numeric',year:'numeric'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Order filter
+function filterOrders(status, el) {
+  document.querySelectorAll('#page-orders .cat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  state.activeOrderFilter = status;
+  loadOrders();
+}
+</script>
+<script src="js/app.js"></script>
+</body>
+</html>
