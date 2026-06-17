@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🍽️ La Mesa — Smart Restaurant Ordering System
 ## Complete Setup Guide for XAMPP
 
@@ -159,3 +160,7 @@ All endpoints are in `php/api.php?action=<action_name>`
 **Customers:** `get_customers`, `add_customer`, `update_customer`  
 **Feedback:** `submit_feedback`, `get_feedback`  
 **Reports:** `get_dashboard`  
+=======
+# restaurant-management-system
+management system
+>>>>>>> 8ff42ef0b5d7e05d75abea44b2fe1edaa170b0f2
